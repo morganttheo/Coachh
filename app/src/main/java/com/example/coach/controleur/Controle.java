@@ -2,37 +2,53 @@ package com.example.coach.controleur;
 
 import android.content.Context;
 
+import com.example.coach.modele.AccesDistant;
 import com.example.coach.modele.AccesLocal;
 import com.example.coach.modele.Profil;
 import com.example.coach.outils.Serializer;
+import com.example.coach.vue.MainActivity;
+
+import org.json.JSONObject;
 
 import java.util.Date;
 
 public final class Controle {
     private static Controle instance;
     private static Profil profil;
+    private static Context context;
 
-    private AccesLocal accesLocal;
+    /**private AccesLocal accesLocal;*/
+
+    private static AccesDistant accesDistant;
 
     private static String nomFic = "saveprofil";
 
     private Controle(Context context) {
-        accesLocal = AccesLocal.getInstance(context);
-        profil = accesLocal.recupDernier();
-
+        /**accesLocal = AccesLocal.getInstance(context);
+        profil = accesLocal.recupDernier();*/
+        if(context != null){
+            Controle.context = context;
+        }
        /** recupSerialize(context);*/
     }
 
     public final static Controle getInstance(Context context){
-        if(Controle.instance == null){
-            Controle.instance = new Controle(context);
+        if(instance == null){
+            instance = new Controle(context);
+            accesDistant = AccesDistant.getInstance();
+            accesDistant.envoi("dernier", new JSONObject());
         }
-        return Controle.instance;
+        return instance;
+    }
+    public void setProfil(Profil profil){
+        Controle.profil = profil;
+        ((MainActivity)context).recupProfil();
     }
 
-    public void creerProfil(Integer poids, Integer taille, Integer age, Integer sexe, Context context){
+    public void creerProfil(Integer poids, Integer taille, Integer age, Integer sexe){
         profil = new Profil(new Date(), poids, taille, age, sexe);
-        accesLocal.ajout(profil);
+        accesDistant.envoi("enreg", profil.convertToJSONObject());
+        /**accesLocal.ajout(profil);*/
         /**Serializer.serialize( nomFic,  profil, context);*/
     }
 
